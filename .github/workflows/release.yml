@@ -1,0 +1,130 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+    paths: ${{ fromJSON(vars.BUILD_REPOS) }}
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        release-branch: ${{ fromJSON(vars.RELEASE_BRANCHES) }}
+        platform:
+          - arch: x86_64
+            runner: ubuntu-24.04
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+
+    runs-on: ${{ matrix.platform.runner }}
+    container:
+      image: alpine:${{ matrix.release-branch }}
+      volumes:
+        - ${{ github.workspace }}:/home/abuild/aports
+        # https://github.com/actions/runner/issues/801#issuecomment-2394425757
+        - /:/host
+
+    steps:
+      # https://github.com/actions/runner/issues/801#issuecomment-2394425757
+      - name: Patch native Alpine NodeJS into Runner environment
+        if: runner.arch == 'ARM64'
+        shell: sh
+        run: |
+          apk add nodejs
+          sed -i "s:ID=alpine:ID=NotpineForGHA:" /etc/os-release
+          cd /host/home/runner/runners/*/externals/
+          rm -rf node20/*
+          mkdir node20/bin
+          ln -s /usr/bin/node node20/bin/node
+
+      - name: Checkout aports repository
+        uses: actions/checkout@v4
+
+      - name: Setup packager keys
+        run: |
+          echo "${{ vars.PACKAGER_PUBKEY }}" > /etc/apk/keys/${{ vars.PACKAGER_KEYNAME }}.pub
+
+      - name: Configure Alpine repositories
+        run: |
+          rm /etc/apk/repositories
+          printf -- >> /etc/apk/repositories \
+            "http://dl-cdn.alpinelinux.org/alpine/$(test edge != ${{ matrix.release-branch }} && echo v)${{ matrix.release-branch }}/%s\n" \
+            main community $(test edge = ${{ matrix.release-branch }} && echo testing)
+
+          apk upgrade -U --available
+
+      - name: Install packages
+        run: apk add alpine-sdk lua-aports
+
+      - name: Prepare environment
+        run: |
+          adduser -u 1001 -G abuild -s /bin/sh -D abuild
+          addgroup abuild wheel
+
+          install -d -g abuild -m 775 /var/cache/distfiles
+          mkdir -p /home/abuild/.abuild
+          mkdir -p /home/abuild/packages
+          chown -R abuild:abuild /home/abuild
+
+          sed -i "s/JOBS=[0-9]*/JOBS=$(nproc)/" /etc/abuild.conf
+
+          KEY_DIR=$(mktemp -d -t keys-XXXXXX)
+          echo "${{ vars.PACKAGER_PUBKEY }}" > $KEY_DIR/${{ vars.PACKAGER_KEYNAME }}.pub
+          echo "${{ secrets.PACKAGER_PRIVKEY }}" > $KEY_DIR/${{ vars.PACKAGER_KEYNAME }}
+          chown -R abuild:abuild $KEY_DIR
+          echo "PACKAGER_PRIVKEY=$KEY_DIR/${{ vars.PACKAGER_KEYNAME }}" > /home/abuild/.abuild/abuild.conf
+
+      - name: Build packages
+        working-directory: /home/abuild/aports
+        run: |
+          export REPO_DIR="/home/abuild/packages/$(test edge != ${{ matrix.release-branch }} && echo v)${{ matrix.release-branch }}"
+
+          BUILD_REPOS=''
+          for repo in ${{ join(fromJSON(vars.BUILD_REPOS), ' ') }}; do
+            if [ -n "$(find $repo -maxdepth 2 -name APKBUILD)" ]; then
+              BUILD_REPOS="$BUILD_REPOS $repo"
+            fi
+          done
+
+          su abuild sh -c 'buildrepo -d $REPO_DIR $@' -- $BUILD_REPOS
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages-${{ matrix.release-branch }}-${{ matrix.platform.arch }}
+          path: /home/abuild/packages
+
+  publish:
+    needs: build
+
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download and merge artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: packages-*
+          path: packages
+          merge-multiple: true
+
+      - name: Generate directory listing
+        uses: yKicchan/generate-directory-listing-action@v1
+        with:
+          target: packages
+
+      - name: Upload packages as GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: packages
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
