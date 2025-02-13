@@ -25,8 +25,3 @@ client {
     fingerprint.denylist = "env_aws,env_azure,env_digitalocean,env_gce"
   }
 }
-
-ui {
-  # Uncomment to enable UI, it will listen on port 4646
-  #enabled = true
-}
