@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - main
-    paths: ${{ fromJSON(vars.BUILD_REPOS) }}
-
+    paths:
+      - "*/*/APKBUILD"
 jobs:
   build:
     strategy:
