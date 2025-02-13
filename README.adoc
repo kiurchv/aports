@@ -4,7 +4,7 @@
 :repo-branch: v3.21
 :gh-name: kiurchv/{repo-name}
 :gh-branch: main
-:key-file: jakub@jirutka.cz-655775c4.rsa.pub
+:key-file: kiurchv@gmail.com-67ac21bc.rsa.pub
 :repos-uri: https://kiurchv.xyz/aports
 
 ifdef::env-github[]
