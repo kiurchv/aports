@@ -1,20 +1,16 @@
 # Contributor: Matthias Neugebauer <mtneug@mailbox.org>
 # Contributor: omni <omni+alpine@hack.org>
 # Contributor: Dermot Bradley <dermot_bradley@yahoo.com>
-# Maintainer: Dermot Bradley <dermot_bradley@yahoo.com>
+# Contributor: Myroslav Kiurchev <kiurchv@gmail.com>
+# Maintainer: Myroslav Kiurchev <kiurchv@gmail.com>
 pkgname=nomad
-#
-# Please do NOT do "drive by" upgrades of this package. If only a few
-# days have passed since an upstream release has occurred then it is
-# highly likely that I am *already* preparing an Alpine package upgrade.
-#
 pkgver=1.9.6
 # remember to update _gitcommit to revision of the release
 _gitcommit=7f8b449
 pkgrel=0
 pkgdesc="easy-to-use, flexible, and performant workload orchestrator"
 url="https://www.nomadproject.io/"
-arch="all !riscv64" # riscv64: boltdb fails to build
+arch="x86_64 aarch64"
 license="BUSL-1.1"
 depends="
 	cni-plugins
