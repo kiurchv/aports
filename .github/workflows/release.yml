@@ -48,11 +48,16 @@ jobs:
       - name: Configure Alpine repositories
         run: |
           rm /etc/apk/repositories
+
           printf -- >> /etc/apk/repositories \
-            "http://dl-cdn.alpinelinux.org/alpine/$(test edge != ${{ matrix.release-branch }} && echo v)${{ matrix.release-branch }}/%s\n" \
+            "https://dl-cdn.alpinelinux.org/alpine/$(test edge != ${{ matrix.release-branch }} && echo v)${{ matrix.release-branch }}/%s\n" \
             main community $(test edge = ${{ matrix.release-branch }} && echo testing)
 
-          apk upgrade -U --available
+          printf -- >> /etc/apk/repositories \
+            "https://kiurchv.xyz/aports/$(test edge != ${{ matrix.release-branch }} && echo v)${{ matrix.release-branch }}/%s\n" \
+            ${{ join(fromJSON(vars.BUILD_REPOS), ' ') }}
+
+          apk upgrade -U --available || true
 
       - name: Install packages
         run: apk add alpine-sdk lua-aports
