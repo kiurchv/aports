@@ -1,0 +1,46 @@
+# Contributor: Myroslav Kiurchev <kiurchv@gmail.com>
+# Maintainer: Myroslav Kiurchev <kiurchv@gmail.com>
+pkgname=nomad-driver-podman
+pkgver=0.6.2
+# remember to update _gitcommit to revision of the release
+_gitcommit=11c4b12
+pkgrel=0
+pkgdesc="a nomad task driver plugin for sandboxing workloads in podman containers"
+url="https://developer.hashicorp.com/nomad/plugins/drivers/podman"
+arch="x86_64 aarch64"
+license="MPL-2.0"
+depends="
+	nomad
+	podman
+	"
+makedepends="
+	bash
+	go
+	linux-headers
+	make
+	"
+options="net !check" # cannot produce environment for testing in CI
+source="$pkgname-$pkgver.tar.gz::https://github.com/hashicorp/nomad-driver-podman/archive/v$pkgver.tar.gz"
+
+export CGO_ENABLED=0
+export GOFLAGS="$GOFLAGS -trimpath -mod=readonly -modcacherw"
+export GOCACHE="${GOCACHE:-"$srcdir/go-cache"}"
+export GOTMPDIR="${GOTMPDIR:-"$srcdir"}"
+export GOMODCACHE="${GOMODCACHE:-"$srcdir/go"}"
+
+build() {
+	go build -v -o bin/"$pkgname" \
+		-ldflags "-X github.com/hashicorp/nomad-driver-podman/version.GitCommit='$pkgver'"
+}
+
+check() {
+	go test -timeout=15m "./..."
+}
+
+package() {
+	install -m755  -o root -g root -D bin/"$pkgname" "$pkgdir"/usr/lib/nomad/plugins/"$pkgname"
+}
+
+sha512sums="
+06f034e6945992e1184b195cc8e7bd3bf127a184fbf1a5fd8f5b41e6b37eb0eed1734a5685314e71994047f5fb299f2e45afdd7d4f4401f7b4b577b5956d3963  nomad-driver-podman-0.6.2.tar.gz
+"
