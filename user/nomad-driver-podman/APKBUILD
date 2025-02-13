@@ -38,7 +38,7 @@ check() {
 }
 
 package() {
-	install -m755  -o root -g root -D bin/"$pkgname" "$pkgdir"/usr/lib/nomad/plugins/"$pkgname"
+	install -m755  -o root -g root -D bin/"$pkgname" "$pkgdir"/usr/libexec/nomad/plugins/"$pkgname"
 }
 
 sha512sums="

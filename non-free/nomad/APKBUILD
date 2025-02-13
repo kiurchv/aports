@@ -92,7 +92,7 @@ package() {
 	install -m644 -D "$srcdir"/"$pkgname".confd "$pkgdir"/etc/conf.d/"$pkgname"
 
 	install -m755 -d "$pkgdir"/etc/cni
-	install -m755 -d "$pkgdir"/usr/lib/"$pkgname"/plugins
+	install -m755 -d "$pkgdir"/usr/libexec/"$pkgname"/plugins
 
 	install -m755 -o root -g root -D bin/"$pkgname" "$pkgdir"/usr/sbin/"$pkgname"
 	install -m640 -o root -g root -D "$srcdir"/server.hcl "$pkgdir"/etc/nomad.d/server.hcl

@@ -3,7 +3,7 @@ disable_update_check = true
 # Logging is handled by supervise-daemon so disable
 # Syslog to avoid double logging.
 enable_syslog        = false
-plugin_dir           = "/usr/lib/nomad/plugins"
+plugin_dir           = "/usr/libexec/nomad/plugins"
 
 server {
   enabled          = true
