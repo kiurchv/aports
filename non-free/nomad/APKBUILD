@@ -4,9 +4,9 @@
 # Contributor: Myroslav Kiurchev <kiurchv@gmail.com>
 # Maintainer: Myroslav Kiurchev <kiurchv@gmail.com>
 pkgname=nomad
-pkgver=1.9.7
+pkgver=1.10.0
 # remember to update _gitcommit to revision of the release
-_gitcommit=f869597
+_gitcommit=e26a2bd
 pkgrel=0
 pkgdesc="easy-to-use, flexible, and performant workload orchestrator"
 url="https://www.nomadproject.io/"
@@ -100,7 +100,7 @@ package() {
 }
 
 sha512sums="
-1900586f2814441979b173e5099aaa8dc79474877f231cc98c875ca612b813e7f995a830f829bf4cbc5ce3f30ae5d682431dbc3d06074784bee544876a80eb75  nomad-1.9.7.tar.gz
+a0f41933d8f6490b5d275b1f45090a8e3895882bb4f444facc54220f9d4897c89dd0e6f3771682f00db13dc5530a059bf48da9d48260405e36bee12e03a66a0f  nomad-1.10.0.tar.gz
 3431260365350ffce7b8ad81de9bb6bc3cfd1a8053bcacc780ca48c6878bf7018b7537b4c7fd6b4ead83e8ad1ac08b90e249f007fe88e167936417d495e88482  nomad.confd
 f26a7eb284530e568898820dea7b369319fa54d390330f939ad1d3bde16aaac84b31368d0d552acaa556db9e0d472ed1bde241478322f4afc688046fb58656e2  nomad.initd
 287f12d28cb7e715b1ad4164d0aff16059ae3ecd7aa8439a8f4d62ad893297d174b4b1ea134aa2b42a806b525bd29e3aac2fde075e5df701cdc6e5869bc1fc47  server.hcl
