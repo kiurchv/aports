@@ -41,6 +41,16 @@ jobs:
       - name: Checkout aports repository
         uses: actions/checkout@v4
 
+      - name: Prepare environment
+        run: |
+          adduser -u 1001 -G abuild -s /bin/sh -D abuild
+          addgroup abuild wheel
+
+          install -d -g abuild -m 775 /var/cache/distfiles
+          mkdir -p /home/abuild/.abuild
+          mkdir -p /home/abuild/packages
+          chown -R abuild:abuild /home/abuild
+
       - name: Setup packager keys
         run: |
           echo "${{ vars.PACKAGER_PUBKEY }}" > /etc/apk/keys/${{ vars.PACKAGER_KEYNAME }}.pub
@@ -57,21 +67,17 @@ jobs:
             "https://kiurchv.xyz/aports/$(test edge != ${{ matrix.release-branch }} && echo v)${{ matrix.release-branch }}/%s\n" \
             ${{ join(fromJSON(vars.BUILD_REPOS), ' ') }}
 
+          printf -- >> /etc/apk/repositories \
+            "/home/abuild/packages/$(test edge != ${{ matrix.release-branch }} && echo v)${{ matrix.release-branch }}/%s\n" \
+            ${{ join(fromJSON(vars.BUILD_REPOS), ' ') }}
+
           apk upgrade -U --available || true
 
       - name: Install packages
         run: apk add alpine-sdk lua-aports
 
-      - name: Prepare environment
+      - name: Setup abuild settings
         run: |
-          adduser -u 1001 -G abuild -s /bin/sh -D abuild
-          addgroup abuild wheel
-
-          install -d -g abuild -m 775 /var/cache/distfiles
-          mkdir -p /home/abuild/.abuild
-          mkdir -p /home/abuild/packages
-          chown -R abuild:abuild /home/abuild
-
           sed -i "s/JOBS=[0-9]*/JOBS=$(nproc)/" /etc/abuild.conf
 
           KEY_DIR=$(mktemp -d -t keys-XXXXXX)
